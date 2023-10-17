@@ -1,15 +1,20 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef , useMemo} from "react";
 import * as THREE from "three";
+import DynamicYourComponent from './dynamicComponentLoader';
+
+
 
 const YourComponent: React.FC = () => {
   const divRef = useRef<HTMLDivElement | null>(null);
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  const scene = new THREE.Scene();
-  const renderer = new THREE.WebGLRenderer();
+  const camera = useMemo(() => new THREE.PerspectiveCamera(45, 1, 0.1, 100), []);
+  const scene = useMemo(() => new THREE.Scene(), []);
+  const renderer = useMemo(() => new THREE.WebGLRenderer(), []);
+  
   const cubeGeometry = new THREE.BoxGeometry();
   const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
   const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
+ 
   const isDragging = useRef(false);
   const previousX = useRef(0);
 
@@ -37,13 +42,17 @@ const YourComponent: React.FC = () => {
   };
   // ...
 
+
   useEffect(() => {
-    if (divRef.current) {
+    if (typeof window !== 'undefined') {
+      const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer();
       const yourDiv = divRef.current;
 
       const updateRendererSize = () => {
-        const newWidth = yourDiv.clientWidth;
-        const newHeight = yourDiv.clientHeight;
+        const newWidth = yourDiv?.clientWidth || 100;
+        const newHeight = yourDiv?.clientHeight || 100;
 
         camera.aspect = newWidth / newHeight;
         camera.updateProjectionMatrix();
@@ -51,8 +60,8 @@ const YourComponent: React.FC = () => {
         renderer.setSize(newWidth, newHeight);
       };
 
-      renderer.setSize(yourDiv.clientWidth, yourDiv.clientHeight);
-      yourDiv.appendChild(renderer.domElement);
+      renderer.setSize(yourDiv?.clientWidth || 5, yourDiv?.clientHeight || 5);
+      yourDiv?.appendChild(renderer.domElement);
 
       window.addEventListener("resize", updateRendererSize);
       updateRendererSize();
@@ -111,9 +120,10 @@ const YourComponent: React.FC = () => {
 
       animate();
     }
-  }, []);
+  }, [ camera, renderer, scene]);
 
   return (
+    
     <div
       ref={divRef}
       style={{ width: "100%", height: "100vh" }}
@@ -122,6 +132,7 @@ const YourComponent: React.FC = () => {
       onMouseUp={handleMouseUp}
       onWheel={handleWheel}
     >
+     
       {/* A Three.js jelenet itt jelenik meg */}
     </div>
   );
