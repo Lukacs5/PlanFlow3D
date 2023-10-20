@@ -13,6 +13,11 @@ pnpm dev
 # or
 bun dev
 ```
+Instaled database thingi [Prisma.io](https://www.prisma.io/docs/concepts/components/prisma-schema)
+if you edit someting in database use this :
+```
+npx prisma generate
+```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
