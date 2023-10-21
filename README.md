@@ -1,4 +1,14 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# PlanFlow3D
+
+PlanFlow3D is a user-friendly 3D home design application that empowers users to quickly and efficiently design and visualize interior spaces.
+
+## Built with:
+
+- [Next.js](https://nextjs.org/): A React framework that enables features like server-side rendering and static site generation.
+- [Three.js](https://threejs.org/): A cross-browser JavaScript library and API used to create and display animated 3D computer graphics in a web browser.
+- [Tailwind CSS](https://tailwindcss.com/): A utility-first CSS framework for rapidly building custom user interfaces.
+- [Prisma](https://www.prisma.io/): An open-source database toolkit and ORM for Node.js and TypeScript.
+- [Mongodb](https://www.mongodb.com/) 
 
 ## Getting Started
 
@@ -13,11 +23,53 @@ pnpm dev
 # or
 bun dev
 ```
-Instaled database thingi [Prisma.io](https://www.prisma.io/docs/concepts/components/prisma-schema)
-if you edit someting in database use this :
+
+Install the database tool [Prisma.io](https://www.prisma.io/docs/concepts/components/prisma-schema)
+If you make changes to the database, use this command:
 ```
 npx prisma generate
 ```
+
+If MongoDB isn't working, please ensure it's turned on:
+```
+brew install mongodb-community@7.0
+```
+To check MongoDB version:
+```
+mongod --version
+```
+
+file path:
+```
+/usr/local/var/log/mongodb/mongo.log
+``` 
+Configuration:
+```
+systemLog:
+  destination: file
+  path: /usr/local/var/log/mongodb/mongo.log
+  logAppend: true
+storage:
+  dbPath: /usr/local/var/mongodb
+net:
+  bindIp: 127.0.0.1, ::1
+  ipv6: true
+replication:
+  replSetName: "myReplSetName"
+```
+To ensure MongoDB is functioning properly, use the following commands:
+```
+mongosh
+```
+
+```
+rs.initiate()
+```
+```
+rs.status()
+```
+
+
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 

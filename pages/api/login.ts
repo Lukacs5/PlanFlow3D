@@ -1,4 +1,3 @@
-// pages/api/login.ts
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import { NextApiRequest, NextApiResponse } from 'next'

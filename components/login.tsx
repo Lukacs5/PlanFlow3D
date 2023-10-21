@@ -34,6 +34,7 @@ function LoginForm() {
           <input
             type="text"
             placeholder="Felhasználónév"
+            required
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             className="w-full p-4 rounded-full border border-gray-300"
@@ -44,6 +45,7 @@ function LoginForm() {
           <input
             type="password"
             placeholder="Jelszó"
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-4 rounded-full border border-gray-300"
