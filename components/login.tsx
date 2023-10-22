@@ -1,9 +1,11 @@
 import { useState } from "react";
 import Link from "next/link";
 
+
 function LoginForm() {
-  const [nickname, setNickname] = useState("");
+  const [email, setemail] = useState("");
   const [password, setPassword] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -11,13 +13,19 @@ function LoginForm() {
     const response = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nickname, password }),
+      body: JSON.stringify({ email, password }),
     });
 
     if (response.ok) {
       console.log("Sikeres bejelentkezés");
+      setMessage("Sikeres bejelentkezés!");
+      const data = await response.json();
+      const token = data.token;  
+
+      localStorage.setItem("token", token);
     } else {
       console.log("Hiba a bejelentkezés során");
+      setMessage("Hiba a bejelentkezés során. Próbáld újra!");
     }
   };
 
@@ -35,8 +43,8 @@ function LoginForm() {
             type="text"
             placeholder="Felhasználónév"
             required
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
+            value={email}
+            onChange={(e) => setemail(e.target.value)}
             className="w-full p-4 rounded-full border border-gray-300"
           />
         </div>
@@ -59,7 +67,8 @@ function LoginForm() {
             SingIn
           </button>
           
-          
+          {message && <div className="mt-4 text-center">{message}</div>}
+
         </div>
       </form>
     </div>

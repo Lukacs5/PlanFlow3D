@@ -6,11 +6,11 @@ const prisma = new PrismaClient()
 
 export default async function login(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { nickname, password } = req.body
+    const { email, password } = req.body
 
     const user = await prisma.user.findUnique({
       where: {
-        nickname: nickname
+        email:email
       },
     })
 

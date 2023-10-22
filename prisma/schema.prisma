@@ -12,8 +12,8 @@ model User {
   firstName  String
   lastName   String
   password   String
-  nickname   String      @unique
-  email      String // Optional field
+  nickname   String
+  email      String      @unique
   files      File[]
   projects   Project[]
   floorplans Floorplan[]
