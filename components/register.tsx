@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import ErrorRenderer from "./inputHelpers/ErrorRenderer";
+import ButtonTransfer from "./inputHelpers/buttonTransfer";
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -130,6 +132,7 @@ const Register = () => {
         <div className="text-center mt-4 text-white font-bold">
           {" "}
           Sikeres regisztráció! Üdvözlünk!
+          <ButtonTransfer/>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="text-black">
