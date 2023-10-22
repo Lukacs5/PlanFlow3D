@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from '@/lib/prisma';
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 
 const saltRounds = 10;
-const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
