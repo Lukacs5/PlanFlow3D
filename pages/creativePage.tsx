@@ -19,7 +19,8 @@ const MasterPage2 = () => {
           <LogOut/>
         </nav>
 
-       
+
+ 
       </div>
     </div>
   );
