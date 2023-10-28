@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState ,useCallback} from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
@@ -9,19 +9,23 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 const CreativPlayground: React.FC = () => {
   const divRef = useRef<HTMLDivElement | null>(null);
   const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null);
+  const [cubeWidth, setCubeWidth] = useState(10); // Alapértelmezett szélesség
+  const [cubeHeight, setCubeHeight] = useState(10); // Alapértelmezett magasság
+
 
   const sceneRef = useRef<THREE.Scene | null>(null);
   let interactableObjects: THREE.Mesh[] = [];
-  const addCube = () => {
+  
+  const addCube = useCallback((width: number, height: number) => {
     if (!sceneRef.current) return;
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const geometry = new THREE.BoxGeometry(width, height, 10);
     const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     const cube = new THREE.Mesh(geometry, material);
     sceneRef.current.add(cube);
 
     interactableObjects.push(cube);
     console.log("After pushing", interactableObjects);
-  };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -242,7 +246,26 @@ const CreativPlayground: React.FC = () => {
   return (
     <div ref={divRef} style={{ width: "100%", height: "100vh" }}>
       {/* A Three.js jelenet itt jelenik meg */}
-      <button onClick={addCube}>kocka++</button>
+      <div>
+        <label>
+          Szélesség:
+          <input
+            type="number"
+            value={cubeWidth}
+            onChange={(e) => setCubeWidth(Number(e.target.value))}
+          />
+        </label>
+        <label>
+          Magasság:
+          <input
+            type="number"
+            value={cubeHeight}
+            onChange={(e) => setCubeHeight(Number(e.target.value))}
+          />
+        </label>
+      </div>
+      <button onClick={() => addCube(cubeWidth, cubeHeight)}>Kocka hozzáadása</button>
+    
     </div>
   );
 };
