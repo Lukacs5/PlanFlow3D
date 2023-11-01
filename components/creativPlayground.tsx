@@ -1,45 +1,69 @@
-import React, { useEffect, useRef, useState ,useCallback} from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import font from "../public/fonts/Roboto-msdf.json";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
 import * as BufferGeometryUtils from "three/addons/utils/BufferGeometryUtils.js";
 import { FontLoader } from "three/addons/loaders/FontLoader.js";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
+import { signal } from "@preact/signals-react";
+
+let selectedObject;
+console.log(selectedObject);
 
 const CreativPlayground: React.FC = () => {
+  const fontRoboto = "/fonts/Roboto-msdf.json";
   const divRef = useRef<HTMLDivElement | null>(null);
   const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null);
-  const [cubeWidth, setCubeWidth] = useState(10); // Alapértelmezett szélesség
-  const [cubeHeight, setCubeHeight] = useState(10); // Alapértelmezett magasság
-
-
+  const [cubeWidth, setCubeWidth] = useState(1); // Alapértelmezett szélesség
+  const [cubeHeight, setCubeHeight] = useState(1); // Alapértelmezett magasság
   const sceneRef = useRef<THREE.Scene | null>(null);
-  let interactableObjects: THREE.Mesh[] = [];
+  const interactableObjectsRef = useRef<THREE.Object3D[]>([]);
+  const selectedObjectRef = useRef<THREE.Object3D | null>(null);
+  const transformControlsRef = useRef<TransformControls | null>(null);
+
+  const [operationMode, setOperationMode] = useState<
+    "scale" | "rotate" | "translate"
+  >();
+
+  const operationModeRef = useRef(operationMode);
   
+  const handleDelete = () => {
+    if (selectedObjectRef.current && sceneRef.current) {
+      sceneRef.current.remove(selectedObjectRef.current);
+      const index = interactableObjectsRef.current.indexOf(
+        selectedObjectRef.current
+      );
+      if (index > -1) {
+        interactableObjectsRef.current.splice(index, 1);
+      }
+      if (transformControlsRef.current) {
+        transformControlsRef.current.detach();
+      }
+      selectedObjectRef.current = null;
+    }
+  };
+
   const addCube = useCallback((width: number, height: number) => {
     if (!sceneRef.current) return;
-    const geometry = new THREE.BoxGeometry(width, height, 10);
+    const geometry = new THREE.BoxGeometry(width, height, 1);
     const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     const cube = new THREE.Mesh(geometry, material);
     sceneRef.current.add(cube);
-
-    interactableObjects.push(cube);
-    console.log("After pushing", interactableObjects);
   }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+     
       const newRenderer = new THREE.WebGLRenderer();
       const scene = new THREE.Scene();
-      sceneRef.current = scene;
       const yourDiv = divRef.current;
       const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-      //const scene = new THREE.Scene();
-
       const raycaster = new THREE.Raycaster();
       const mouse = new THREE.Vector2();
+      sceneRef.current = scene;
+      operationModeRef.current = operationMode;
       let setIsMouseDown = false;
-      let selectedObject = null;
 
       function onMouseDown(event: MouseEvent) {
         return (setIsMouseDown = true);
@@ -87,22 +111,6 @@ const CreativPlayground: React.FC = () => {
       directionalLight.position.set(200, 500, 300);
       scene.add(directionalLight);
 
-      const lShape = new THREE.Group();
-
-      const wall1 = new THREE.Mesh(
-        new THREE.BoxGeometry(2, 0.2, 1),
-        new THREE.MeshLambertMaterial({ color: 0x888888 })
-      );
-      wall1.position.set(2, 0.1, 1);
-      lShape.add(wall1);
-
-      const wall2 = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 0.2, 2),
-        new THREE.MeshLambertMaterial({ color: 0x888888 })
-      );
-      wall2.position.set(2.5, 0.1, 0);
-      lShape.add(wall2);
-
       const cabin = new THREE.Mesh(
         new THREE.BoxGeometry(0.3, 1.3, 0.3),
         new THREE.MeshLambertMaterial({ color: 0xffffff })
@@ -117,32 +125,12 @@ const CreativPlayground: React.FC = () => {
         new THREE.MeshLambertMaterial({ color: 0xffffff })
       );
 
-      const wall1Geometry = new THREE.BoxGeometry(2, 0.2, 1);
-      wall1Geometry.translate(2, 0.1, 1);
-
-      const wall2Geometry = new THREE.BoxGeometry(1, 0.2, 2);
-      wall2Geometry.translate(2.5, 0.1, 0);
-
-      const mergedGeometry = BufferGeometryUtils.mergeGeometries([
-        wall1Geometry,
-        wall2Geometry,
-      ]);
-
-      const lShape2 = new THREE.Mesh(
-        mergedGeometry,
-        new THREE.MeshLambertMaterial({ color: 0x888888 })
-      );
-
-      //scene.add(lShape);
-      scene.add(lShape2);
       scene.add(cabin);
       scene.add(cabin2);
       scene.add(cabin3);
 
       const geometry = new THREE.BoxGeometry(1, 1, 1);
       const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      const cube = new THREE.Mesh(geometry, material);
-      //scene.add(cube);
 
       // Méretkotta vonalának létrehozása
       const points = [
@@ -152,32 +140,6 @@ const CreativPlayground: React.FC = () => {
       const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
       const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
       const line = new THREE.Line(lineGeometry, lineMaterial);
-      //scene.add(line);
-
-      // Méretkotta szövegének létrehozása
-      const loader = new FontLoader();
-      loader.load(
-        "fonts/helvetiker_regular.typeface.json",
-        function (font) {
-          const textGeometry = new TextGeometry("1 unit", {
-            font: font,
-            size: 0.1,
-            height: 0.01,
-          });
-          const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-          const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-          textMesh.position.set(0.8, -0.2, 0);
-          scene.add(textMesh);
-        },
-        function (xhr) {
-          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-        },
-        function (err) {
-          console.log("An error happened");
-        }
-      );
-
-      cabin.position.x += 1;
 
       const controls = new OrbitControls(camera, newRenderer.domElement);
       const transformControls = new TransformControls(
@@ -196,52 +158,48 @@ const CreativPlayground: React.FC = () => {
 
       window.addEventListener("mousedown", onMouseDown, false);
       window.addEventListener("mouseup", onMouseUp, false);
+      interactableObjectsRef.current.push(cabin);
+      interactableObjectsRef.current.push(cabin2);
+      interactableObjectsRef.current.push(cabin3);
+      //console.log("Operation mode animelött changed to:", operationModeRef.current);
       const animate = () => {
         requestAnimationFrame(animate);
-
         newRenderer.render(scene, camera);
 
-        /*
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(scene.children);
-        if (intersects.length >= 0) {
-          const objectUnderMouse = intersects[0].object;
-          console.log(objectUnderMouse);
-          transformControls.attach(cabin);
-         
-        }*/
-
-        interactableObjects.push(cabin);
-        interactableObjects.push(lShape2);
-        interactableObjects.push(cabin2);
-        interactableObjects.push(cabin3);
-        //interactableObjects.push(cube);
-        //  [cabin, lShape2, cabin2, cabin3]; // és bármely más objektum, amelyet hozzáadott a jelenethez
-
-        // ...
-        // Szűrd ki a csak mesh objektumokat a scene.children listából
         const meshObjects = scene.children.filter(
           (child) => child instanceof THREE.Mesh
         );
-
-        // Most a meshObjects tömb tartalmazza csak a mesh objektumokat
-        
-
         const intersects = raycaster.intersectObjects(meshObjects);
         if (intersects.length > 0 && setIsMouseDown) {
           const objectUnderMouse = intersects[0].object;
-          console.log(objectUnderMouse);
+          // console.log(objectUnderMouse);
           transformControls.attach(objectUnderMouse);
+          switch (operationModeRef.current) {
+            case "scale":
+              transformControls.setMode("scale");
+              transformControls.attach(objectUnderMouse);
+              break;
+            case "rotate":
+              transformControls.setMode("rotate");
+              transformControls.attach(objectUnderMouse);
+              break;
+            case "translate":
+              transformControls.setMode("translate");
+              transformControls.attach(objectUnderMouse);
+              break;
+            default:
+              break;
+          }
+
           selectedObject = objectUnderMouse;
-          //console.log(interactableObjects)
-         // console.log(scene.children);
-          console.log(meshObjects);
+
+          console.log(operationModeRef.current);
         }
       };
 
       animate();
     }
-  }, []);
+  }, [operationMode]);
 
   return (
     <div ref={divRef} style={{ width: "100%", height: "100vh" }}>
@@ -250,22 +208,53 @@ const CreativPlayground: React.FC = () => {
         <label>
           Szélesség:
           <input
+            className=" text-black"
             type="number"
             value={cubeWidth}
             onChange={(e) => setCubeWidth(Number(e.target.value))}
+            step="0.05"
           />
         </label>
         <label>
           Magasság:
           <input
+            className=" text-black"
             type="number"
             value={cubeHeight}
             onChange={(e) => setCubeHeight(Number(e.target.value))}
+            step="0.05"
           />
         </label>
       </div>
-      <button onClick={() => addCube(cubeWidth, cubeHeight)}>Kocka hozzáadása</button>
-    
+      <button
+        className="p-3 hover:bg-blue-700"
+        onClick={() => addCube(cubeWidth, cubeHeight)}
+      >
+        Kocka hozzáadása
+      </button>
+
+      <button className="p-3 hover:bg-red-700" onClick={handleDelete}>
+        Törlés
+      </button>
+
+      <button
+        className="p-3 hover:bg-blue-700"
+        onClick={() => setOperationMode("scale")}
+      >
+        Átméretezés
+      </button>
+      <button
+        className="p-3 hover:bg-blue-700"
+        onClick={() => setOperationMode("rotate")}
+      >
+        Forgatás
+      </button>
+      <button
+        className="p-3 hover:bg-blue-700"
+        onClick={() => setOperationMode("translate")}
+      >
+        Mozgatás
+      </button>
     </div>
   );
 };
