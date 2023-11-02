@@ -50,11 +50,13 @@ export default function App() {
   const [selectedBoxSize, setSelectedBoxSize] = useState<BoxData | null>(null);
 
   const [boxes, setBoxes] = useState<BoxData[]>([
-    { sizeX: 1, sizeY: 1, sizeZ: 1, x: 0, y: 0, z: 0 }
+    { sizeX: 1, sizeY: 1, sizeZ: 1, x: 0, y: 0, z: 0 },
   ]);
   const target = useStore((state) => state.target);
   const [selectedBoxIndex, setSelectedBoxIndex] = useState<number | null>(null);
-  const [transformMode, setTransformMode] = useState<"scale" | "rotate" | "translate">("translate");
+  const [transformMode, setTransformMode] = useState<
+    "scale" | "rotate" | "translate"
+  >("translate");
 
   const addBox = () => {
     const newBoxData: BoxData = {
@@ -63,13 +65,13 @@ export default function App() {
       sizeZ: boxSizeZ,
       x: 0,
       y: 0,
-      z: 0
+      z: 0,
     };
-    setBoxes(prev => [...prev, newBoxData]);
+    setBoxes((prev) => [...prev, newBoxData]);
   };
   const deleteSelectedBox = () => {
     if (selectedBoxIndex !== null) {
-      setBoxes(prev => prev.filter((_, idx) => idx !== selectedBoxIndex));
+      setBoxes((prev) => prev.filter((_, idx) => idx !== selectedBoxIndex));
       setSelectedBoxIndex(null);
     }
   };
@@ -80,8 +82,8 @@ export default function App() {
 
   const updateSelectedBoxSize = () => {
     if (selectedBoxSize && selectedBoxIndex !== null) {
-      setBoxes(prev => 
-        prev.map((box, idx) => 
+      setBoxes((prev) =>
+        prev.map((box, idx) =>
           idx === selectedBoxIndex ? selectedBoxSize : box
         )
       );
@@ -110,27 +112,30 @@ export default function App() {
           Width (X):
           <input
             type="number"
+            step="0.01"
             className="text-black"
             value={boxSizeX}
-            onChange={e => setBoxSizeX(Number(e.target.value))}
+            onChange={(e) => setBoxSizeX(Number(e.target.value))}
           />
         </label>
         <label>
           Height (Y):
           <input
             type="number"
+            step="0.01"
             className="text-black"
             value={boxSizeY}
-            onChange={e => setBoxSizeY(Number(e.target.value))}
+            onChange={(e) => setBoxSizeY(Number(e.target.value))}
           />
         </label>
         <label>
           Depth (Z):
           <input
             type="number"
+            step="0.01"
             className="text-black"
             value={boxSizeZ}
-            onChange={e => setBoxSizeZ(Number(e.target.value))}
+            onChange={(e) => setBoxSizeZ(Number(e.target.value))}
           />
         </label>
 
@@ -145,10 +150,14 @@ export default function App() {
               Width (X):
               <input
                 type="number"
+                step="0.01"
                 className="text-black"
                 value={selectedBoxSize.sizeX}
-                onChange={e =>
-                  setSelectedBoxSize(prev => ({ ...prev!, sizeX: Number(e.target.value) }))
+                onChange={(e) =>
+                  setSelectedBoxSize((prev) => ({
+                    ...prev!,
+                    sizeX: Number(e.target.value),
+                  }))
                 }
               />
             </label>
@@ -156,10 +165,14 @@ export default function App() {
               Height (Y):
               <input
                 type="number"
+                step="0.01"
                 className="text-black"
                 value={selectedBoxSize.sizeY}
-                onChange={e =>
-                  setSelectedBoxSize(prev => ({ ...prev!, sizeY: Number(e.target.value) }))
+                onChange={(e) =>
+                  setSelectedBoxSize((prev) => ({
+                    ...prev!,
+                    sizeY: Number(e.target.value),
+                  }))
                 }
               />
             </label>
@@ -167,17 +180,25 @@ export default function App() {
               Depth (Z):
               <input
                 type="number"
+                step="0.01"
                 className="text-black"
                 value={selectedBoxSize.sizeZ}
-                onChange={e =>
-                  setSelectedBoxSize(prev => ({ ...prev!, sizeZ: Number(e.target.value) }))
+                onChange={(e) =>
+                  setSelectedBoxSize((prev) => ({
+                    ...prev!,
+                    sizeZ: Number(e.target.value),
+                  }))
                 }
               />
             </label>
 
-            <button onClick={updateSelectedBoxSize}>Update Selected Box Size</button>
+            <button onClick={updateSelectedBoxSize}>
+              Update Selected Box Size
+            </button>
 
-            {selectedBoxIndex !== null && <button onClick={deleteSelectedBox}>Delete Selected Box</button>}
+            {selectedBoxIndex !== null && (
+              <button onClick={deleteSelectedBox}>Delete Selected Box</button>
+            )}
           </>
         )}
       </div>
