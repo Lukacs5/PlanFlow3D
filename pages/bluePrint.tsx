@@ -51,7 +51,7 @@ function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
   );
 }
 
-const CreativePage = () => {
+const BluePrint = (props : any) => {
   const [boxSizeX, setBoxSizeX] = useState<number>(1);
   const [boxSizeY, setBoxSizeY] = useState<number>(1);
   const [boxSizeZ, setBoxSizeZ] = useState<number>(1);
@@ -290,4 +290,4 @@ const CreativePage = () => {
   );
 };
 
-export default CreativePage;
+export default BluePrint;
