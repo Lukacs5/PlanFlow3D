@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { TransformControls } from "@react-three/drei";
+import { TransformControls, OrbitControls, useTexture } from "@react-three/drei";
 import create, { SetState } from "zustand";
 import type { Object3D } from "three";
-import { OrbitControls } from "@react-three/drei";
 
 type BoxData = {
   sizeX: number;
@@ -12,6 +11,7 @@ type BoxData = {
   x: number;
   y: number;
   z: number;
+  texture: string;
 };
 
 type Store = {
@@ -26,6 +26,7 @@ const useStore = create<Store>((set: SetState<Store>) => ({
 
 function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
   const setTarget = useStore((state) => state.setTarget);
+  const textureMap = useTexture(`/textures/${props.texture}.jpg`);
 
   return (
     <mesh
@@ -38,7 +39,7 @@ function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
       }}
     >
       <boxGeometry args={[1, 1, 1]} />
-      <meshNormalMaterial />
+      <meshBasicMaterial map={textureMap} />
     </mesh>
   );
 }
@@ -50,7 +51,7 @@ export default function App() {
   const [selectedBoxSize, setSelectedBoxSize] = useState<BoxData | null>(null);
 
   const [boxes, setBoxes] = useState<BoxData[]>([
-    { sizeX: 1, sizeY: 1, sizeZ: 1, x: 0, y: 0, z: 0 },
+    { sizeX: 1, sizeY: 1, sizeZ: 1, x: 0, y: 0, z: 0, texture: 'default' },
   ]);
   const target = useStore((state) => state.target);
   const [selectedBoxIndex, setSelectedBoxIndex] = useState<number | null>(null);
@@ -66,15 +67,18 @@ export default function App() {
       x: 0,
       y: 0,
       z: 0,
+      texture: 'default'
     };
     setBoxes((prev) => [...prev, newBoxData]);
   };
+
   const deleteSelectedBox = () => {
     if (selectedBoxIndex !== null) {
       setBoxes((prev) => prev.filter((_, idx) => idx !== selectedBoxIndex));
       setSelectedBoxIndex(null);
     }
   };
+
   const selectBox = (idx: number) => {
     setSelectedBoxIndex(idx);
     setSelectedBoxSize(boxes[idx]);
@@ -138,7 +142,6 @@ export default function App() {
             onChange={(e) => setBoxSizeZ(Number(e.target.value))}
           />
         </label>
-
         <button onClick={addBox}>Add Box</button>
       </div>
 
@@ -191,11 +194,24 @@ export default function App() {
                 }
               />
             </label>
-
+            <label>Texture for selected box:</label>
+            <select
+              value={selectedBoxSize.texture}
+              onChange={(e) =>
+                setSelectedBoxSize((prev) => ({
+                  ...prev!,
+                  texture: e.target.value,
+                }))
+              }
+            >
+              <option value="default">Default</option>
+              <option value="stone">Csempe</option>
+              <option value="wood">Fa</option>
+              <option value="carpet">Szönyeg</option>
+            </select>
             <button onClick={updateSelectedBoxSize}>
               Update Selected Box Size
             </button>
-
             {selectedBoxIndex !== null && (
               <button onClick={deleteSelectedBox}>Delete Selected Box</button>
             )}
