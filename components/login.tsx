@@ -33,7 +33,7 @@ function LoginForm() {
 
   useEffect(() => {
     if (shouldNavigate) {
-      window.location.href = "/creativePage";
+      window.location.href = "/bluePrint";
     }
   }, [shouldNavigate]);
 
@@ -55,7 +55,7 @@ function LoginForm() {
             required
             value={email}
             onChange={(e) => setemail(e.target.value)}
-            className="w-full p-4 rounded-full border border-gray-300"
+            className="w-full p-4 rounded-full border border-gray-300 text-black"  
           />
         </div>
         <div className="mb-8">
@@ -66,7 +66,7 @@ function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-4 rounded-full border border-gray-300"
+            className="w-full p-4 rounded-full border border-gray-300 text-black"
           />
         </div>
         <div className="flex justify-center items-center space-x-8 ">

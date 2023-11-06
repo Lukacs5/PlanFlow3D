@@ -25,17 +25,19 @@ const Register = () => {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const checkEmailAvailability = async (email :string) => {
+  const [token, setToken] = useState(null);
+
+  const checkEmailAvailability = async (email: string) => {
     try {
-      const response = await fetch("/api/checkEmail", {
-        method: "POST",
+      
+      const response = await fetch(`/api/checkEmail?email=${email}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
       });
       const data = await response.json();
-
+  
       if (data.isTaken) {
         return "Ez az e-mail cím már foglalt.";
       }
@@ -44,7 +46,7 @@ const Register = () => {
     }
     return "";
   };
-
+  
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     let errorMessage = "";
@@ -110,10 +112,13 @@ const Register = () => {
         },
         body: JSON.stringify(formData),
       });
+      
       const data = await response.json();
       console.log(data);
-      // További kód a válasz kezeléséhez (pl. hibaüzenetek, átirányítás, stb.)
+
       if (response.ok) {
+        localStorage.setItem('token', data.token);
+        setToken(data.token);  // Állítsd be az állapotot a token értékével
         setRegistrationSuccess(true);
       }
     } catch (error) {
@@ -132,7 +137,8 @@ const Register = () => {
         <div className="text-center mt-4 text-white font-bold">
           {" "}
           Sikeres regisztráció! Üdvözlünk!
-          <ButtonTransfer/>
+          <ButtonTransfer token={token} onRedirect={() => setRegistrationSuccess(true)} />
+
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="text-black">

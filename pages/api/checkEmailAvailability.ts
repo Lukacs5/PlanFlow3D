@@ -1,18 +1,19 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 
-
 export default async function checkEmail(
-  req: NextApiRequest ,
+  req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== 'POST') {
+  // Ellenőrzi, hogy a kérés metódusa GET-e
+  if (req.method !== 'GET') {
     return res.status(405).end();
   }
 
-  const { email } = req.body;
+  // Lekéri az e-mail címet a kérés paramétereiből
+  const { email } = req.query;
 
-  if (!email) {
+  if (!email || typeof email !== 'string') {
     return res.status(400).json({ error: 'E-mail cím szükséges!' });
   }
 

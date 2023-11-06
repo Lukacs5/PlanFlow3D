@@ -4,8 +4,8 @@ function LogOut() {
     const router = useRouter();
   
     const redirectToHomePage = () => {
-      localStorage.removeItem('Token');
-      router.push('/');
+      localStorage.removeItem('token');
+      window.location.reload()
     }
   
     return (

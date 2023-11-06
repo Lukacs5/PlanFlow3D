@@ -10,6 +10,7 @@ import {
 import create, { SetState } from "zustand";
 import type { Object3D } from "three";
 import LogOut from "../components/inputHelpers/logout";
+import ProtectedRoute from "./protectedRouteProps";
 
 type BoxData = {
   sizeX: number;
@@ -51,7 +52,7 @@ function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
   );
 }
 
-const BluePrint = (props : any) => {
+const BluePrint = () => {
   const [boxSizeX, setBoxSizeX] = useState<number>(1);
   const [boxSizeY, setBoxSizeY] = useState<number>(1);
   const [boxSizeZ, setBoxSizeZ] = useState<number>(1);
@@ -100,7 +101,41 @@ const BluePrint = (props : any) => {
     }
   };
 
-  return (
+  const [savedBoxes, setSavedBoxes] = useState<BoxData[]>([]);
+
+  const saveToDatabase = async (boxes : BoxData[] ) => {
+    try {
+      const response = await fetch('/api/your-api-endpoint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          boxesData: boxes,
+          userId: "yourUserId" // Ide tedd a felhasználó azonosítóját, ha szükséges
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (data.success) {
+        console.log("Adatok sikeresen elmentve:", data.data);
+      } else {
+        console.error("Hiba az adatok mentése közben:", data.error);
+      }
+    } catch (error) {
+      console.error("Hiba az API hívás során:", error);
+    }
+  };
+
+
+  const saveBoxData = () => {
+    saveToDatabase(boxes);
+    console.log(boxes)
+    alert("Box data saved!");
+  };
+
+  return ( <ProtectedRoute>
     <div className="grid grid-cols-3 gap-4 h-full">
       <div className="col-span-2">
         <div className="h-screen w-full">
@@ -284,9 +319,17 @@ const BluePrint = (props : any) => {
               Scale
             </button>
           </div>
+          <div className="flex justify-center items-center m-4" >
+          <button
+            onClick={saveBoxData}
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Save Box Data
+          </button>
+          </div>
         </div>
       </div>
-    </div>
+    </div></ProtectedRoute>
   );
 };
 
