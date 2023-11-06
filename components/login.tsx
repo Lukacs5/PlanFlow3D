@@ -21,7 +21,7 @@ function LoginForm() {
       const data = await response.json();
       const token = data.token;  
       localStorage.setItem("token", token);
-
+      localStorage.setItem('userEmail', data.email); 
       // Jelzés a navigációhoz
       setShouldNavigate(true);
       
@@ -74,7 +74,7 @@ function LoginForm() {
             type="submit"
             className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg w-full" 
           >
-            SingIn
+            SignIn
           </button>
           
           {message && <div className="mt-4 text-center">{message}</div>}

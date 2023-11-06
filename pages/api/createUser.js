@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 
     const token = jwt.sign({ userId: user.id }, "your_secret_key", { expiresIn: "10h" });
 
-    res.status(200).json({ user, token });
+    res.status(200).json({ user, token , email: user.email });
     console.log(user.lastName);
   } catch (error) {
     console.error("Database Error:", error);

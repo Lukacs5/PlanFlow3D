@@ -5,6 +5,7 @@ function LogOut() {
   
     const redirectToHomePage = () => {
       localStorage.removeItem('token');
+      localStorage.removeItem('userEmail');
       window.location.reload()
     }
   

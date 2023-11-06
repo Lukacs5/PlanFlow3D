@@ -103,16 +103,49 @@ const BluePrint = () => {
 
   const [savedBoxes, setSavedBoxes] = useState<BoxData[]>([]);
 
-  const saveToDatabase = async (boxes : BoxData[] ) => {
+  const getUserIdByEmail = async (email : string) => {
     try {
-      const response = await fetch('/api/your-api-endpoint', {
-        method: 'POST',
+     const email : string = localStorage.getItem('userEmail') || "ERROR";
+      const response = await fetch(`/api/getUserId?email=${encodeURIComponent(email)}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+        }
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        return data.userId; // feltételezve, hogy a válasz JSON objektuma tartalmaz egy `userId` kulcsot
+      } else {
+        throw new Error('A hálózati válasz nem volt rendben.');
+      }
+    } catch (error) {
+      console.error('Hiba történt a felhasználói azonosító lekérésekor:', error);
+      return null; // vagy dobhat egy hibát, attól függően, hogy szeretné kezelni a hibákat
+    }
+  };
+  
+  const saveToDatabase = async () => {
+    try {
+      
+      const userEmail = localStorage.getItem('userEmail');
+      const userId = userEmail ? await getUserIdByEmail(userEmail) : null;
+  
+      // Ellenőrizzük, hogy kaptunk-e userId-t
+      if (!userId) {
+        console.error('Nem sikerült lekérni a userId-t.');
+        return;
+      }
+  
+      // Most már van userId-nk, elvégezhetjük a POST kérést
+      const response = await fetch("/api/bluePrintSave", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           boxesData: boxes,
-          userId: "yourUserId" // Ide tedd a felhasználó azonosítóját, ha szükséges
+          userId: userId,
         }),
       });
   
@@ -127,209 +160,234 @@ const BluePrint = () => {
       console.error("Hiba az API hívás során:", error);
     }
   };
+  
+/*
+  const saveBoxData = async () => {
+    try {
+      const response = await fetch("/api/bluePrintSave", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          boxesData: boxes, // feltételezve, hogy a 'boxes' egy olyan változó, amely tartalmazza a menteni kívánt adatokat
+          userId: "your-user-id", // Cseréld le a 'your-user-id' részt a tényleges felhasználói azonosítóra
+        }),
+      });
 
-
-  const saveBoxData = () => {
-    saveToDatabase(boxes);
-    console.log(boxes)
-    alert("Box data saved!");
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Bluprint data saved:", result);
+        alert("Bluprint data saved!");
+      } else {
+        throw new Error("A hálózati válasz nem volt rendben.");
+      }
+    } catch (error) {
+      console.error(
+        "Probléma merült fel a lekérdezési művelettel kapcsolatban:",
+        error
+      );
+      alert("Nem sikerült elmenteni a doboz adatait!");
+    }
   };
-
-  return ( <ProtectedRoute>
-    <div className="grid grid-cols-3 gap-4 h-full">
-      <div className="col-span-2">
-        <div className="h-screen w-full">
-          <Canvas className="w-full h-full">
-            <ambientLight intensity={0.5} />
-            <directionalLight color="red" position={[0, 0, 5]} />
-            {boxes.map((box, idx) => (
-              <Box
-                key={idx}
-                {...box}
-                forwardedRef={idx === selectedBoxIndex ? target : null}
-                onSelect={() => selectBox(idx)}
-              />
-            ))}
-            {target && (
-              <TransformControls object={target} mode={transformMode} />
-            )}
-            <OrbitControls makeDefault />
-          </Canvas>
+*/
+  return (
+    <ProtectedRoute>
+      <div className="grid grid-cols-3 gap-4 h-full">
+        <div className="col-span-2">
+          <div className="h-screen w-full">
+            <Canvas className="w-full h-full">
+              <ambientLight intensity={0.5} />
+              <directionalLight color="red" position={[0, 0, 5]} />
+              {boxes.map((box, idx) => (
+                <Box
+                  key={idx}
+                  {...box}
+                  forwardedRef={idx === selectedBoxIndex ? target : null}
+                  onSelect={() => selectBox(idx)}
+                />
+              ))}
+              {target && (
+                <TransformControls object={target} mode={transformMode} />
+              )}
+              <OrbitControls makeDefault />
+            </Canvas>
+          </div>
         </div>
-      </div>
-      <div className="col-span-1 m-2 dark:bg-slate-800 bg-slate-400 rounded-xl items-center justify-center h-auto">
-        <nav className="m-2 bg-slate-600 rounded-xl flex justify-between items-center">
-          <h1
-            onClick={() => location.reload()}
-            className="m-2 text-5xl text-left text-white font-bold"
-          >
-            PlanFlow3D
-          </h1>
-          <LogOut />
-        </nav>
-        <div className="p-2">
-          <div className="space-y-4">
-            <div className="flex flex-col">
-              <label className="mb-1 text-gray-600">Width (X):</label>
-              <input
-                type="number"
-                step="0.01"
-                className="p-2 w-full border rounded-md text-black"
-                value={boxSizeX}
-                onChange={(e) => setBoxSizeX(Number(e.target.value))}
-              />
+        <div className="col-span-1 m-2 dark:bg-slate-800 bg-slate-400 rounded-xl items-center justify-center h-auto">
+          <nav className="m-2 bg-slate-600 rounded-xl flex justify-between items-center">
+            <h1
+              onClick={() => location.reload()}
+              className="m-2 text-5xl text-left text-white font-bold"
+            >
+              PlanFlow3D
+            </h1>
+            <LogOut />
+          </nav>
+          <div className="p-2">
+            <div className="space-y-4">
+              <div className="flex flex-col">
+                <label className="mb-1 text-gray-600">Width (X):</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="p-2 w-full border rounded-md text-black"
+                  value={boxSizeX}
+                  onChange={(e) => setBoxSizeX(Number(e.target.value))}
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="mb-1 text-gray-600">Height (Y):</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="p-2 w-full border rounded-md text-black"
+                  value={boxSizeY}
+                  onChange={(e) => setBoxSizeY(Number(e.target.value))}
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="mb-1 text-gray-600">Depth (Z):</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="p-2 w-full border rounded-md text-black"
+                  value={boxSizeZ}
+                  onChange={(e) => setBoxSizeZ(Number(e.target.value))}
+                />
+              </div>
+              <div className="flex justify-center items-center">
+                <button
+                  onClick={addBox}
+                  className="bg-slate-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Add Box
+                </button>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <label className="mb-1 text-gray-600">Height (Y):</label>
-              <input
-                type="number"
-                step="0.01"
-                className="p-2 w-full border rounded-md text-black"
-                value={boxSizeY}
-                onChange={(e) => setBoxSizeY(Number(e.target.value))}
-              />
+
+            <div className="space-y-4">
+              {selectedBoxSize && (
+                <>
+                  <h3 className="text-xl font-bold text-white">
+                    Selected Box Dimensions:
+                  </h3>
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-gray-600">Width (X):</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="p-2 w-full border rounded-md text-black"
+                      value={selectedBoxSize.sizeX}
+                      onChange={(e) =>
+                        setSelectedBoxSize((prev) => ({
+                          ...prev!,
+                          sizeX: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-gray-600">Height (Y):</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="p-2 w-full border rounded-md text-black"
+                      value={selectedBoxSize.sizeY}
+                      onChange={(e) =>
+                        setSelectedBoxSize((prev) => ({
+                          ...prev!,
+                          sizeY: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-gray-600">Depth (Z):</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="p-2 w-full border rounded-md text-black"
+                      value={selectedBoxSize.sizeZ}
+                      onChange={(e) =>
+                        setSelectedBoxSize((prev) => ({
+                          ...prev!,
+                          sizeZ: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-gray-600">
+                      Texture for selected box:
+                    </label>
+                    <select
+                      className="p-2 w-full border rounded-md text-black"
+                      value={selectedBoxSize.texture}
+                      onChange={(e) =>
+                        setSelectedBoxSize((prev) => ({
+                          ...prev!,
+                          texture: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="default">Default</option>
+                      <option value="stone">Csempe</option>
+                      <option value="wood">Fa</option>
+                      <option value="carpet">Szönyeg</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={updateSelectedBoxSize}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Update Selected Box Size
+                  </button>
+                  {selectedBoxIndex !== null && (
+                    <button
+                      onClick={deleteSelectedBox}
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Delete Selected Box
+                    </button>
+                  )}
+                </>
+              )}
             </div>
-            <div className="flex flex-col">
-              <label className="mb-1 text-gray-600">Depth (Z):</label>
-              <input
-                type="number"
-                step="0.01"
-                className="p-2 w-full border rounded-md text-black"
-                value={boxSizeZ}
-                onChange={(e) => setBoxSizeZ(Number(e.target.value))}
-              />
-            </div>
-            <div className="flex justify-center items-center">
+
+            <div className="flex justify-center items-center space-x-2 mt-4">
               <button
-                onClick={addBox}
-                className="bg-slate-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={() => setTransformMode("translate")}
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
               >
-                Add Box
+                Translate
+              </button>
+              <button
+                onClick={() => setTransformMode("rotate")}
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
+              >
+                Rotate
+              </button>
+              <button
+                onClick={() => setTransformMode("scale")}
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
+              >
+                Scale
+              </button>
+            </div>
+            <div className="flex justify-center items-center m-4">
+              <button
+                onClick={saveToDatabase}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Save Box Data
               </button>
             </div>
           </div>
-
-          <div className="space-y-4">
-            {selectedBoxSize && (
-              <>
-                <h3 className="text-xl font-bold text-white">
-                  Selected Box Dimensions:
-                </h3>
-                <div className="flex flex-col">
-                  <label className="mb-1 text-gray-600">Width (X):</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="p-2 w-full border rounded-md text-black"
-                    value={selectedBoxSize.sizeX}
-                    onChange={(e) =>
-                      setSelectedBoxSize((prev) => ({
-                        ...prev!,
-                        sizeX: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="mb-1 text-gray-600">Height (Y):</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="p-2 w-full border rounded-md text-black"
-                    value={selectedBoxSize.sizeY}
-                    onChange={(e) =>
-                      setSelectedBoxSize((prev) => ({
-                        ...prev!,
-                        sizeY: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="mb-1 text-gray-600">Depth (Z):</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="p-2 w-full border rounded-md text-black"
-                    value={selectedBoxSize.sizeZ}
-                    onChange={(e) =>
-                      setSelectedBoxSize((prev) => ({
-                        ...prev!,
-                        sizeZ: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="mb-1 text-gray-600">
-                    Texture for selected box:
-                  </label>
-                  <select
-                    className="p-2 w-full border rounded-md"
-                    value={selectedBoxSize.texture}
-                    onChange={(e) =>
-                      setSelectedBoxSize((prev) => ({
-                        ...prev!,
-                        texture: e.target.value,
-                      }))
-                    }
-                  >
-                    <option value="default">Default</option>
-                    <option value="stone">Csempe</option>
-                    <option value="wood">Fa</option>
-                    <option value="carpet">Szönyeg</option>
-                  </select>
-                </div>
-
-                <button
-                  onClick={updateSelectedBoxSize}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  Update Selected Box Size
-                </button>
-                {selectedBoxIndex !== null && (
-                  <button
-                    onClick={deleteSelectedBox}
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Delete Selected Box
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-
-          <div className="flex justify-center items-center space-x-2 mt-4">
-            <button
-              onClick={() => setTransformMode("translate")}
-              className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
-            >
-              Translate
-            </button>
-            <button
-              onClick={() => setTransformMode("rotate")}
-              className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
-            >
-              Rotate
-            </button>
-            <button
-              onClick={() => setTransformMode("scale")}
-              className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
-            >
-              Scale
-            </button>
-          </div>
-          <div className="flex justify-center items-center m-4" >
-          <button
-            onClick={saveBoxData}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Save Box Data
-          </button>
-          </div>
         </div>
       </div>
-    </div></ProtectedRoute>
+    </ProtectedRoute>
   );
 };
 

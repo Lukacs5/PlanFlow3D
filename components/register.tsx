@@ -118,6 +118,7 @@ const Register = () => {
 
       if (response.ok) {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('userEmail', data.email);
         setToken(data.token);  // Állítsd be az állapotot a token értékével
         setRegistrationSuccess(true);
       }

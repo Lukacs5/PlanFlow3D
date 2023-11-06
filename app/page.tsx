@@ -21,7 +21,7 @@ const MasterPage = () => {
             onClick={() => setIsToggled(!isToggled)}
           >
             
-            {isToggled ? "SingIn" : "SingUp" }
+            {isToggled ? "SignIn" : "SignUp" }
           </button>
         </nav>
 
