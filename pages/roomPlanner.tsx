@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import "../styles/globals.css";
 import "../styles/style.css";
+import ProtectedRoute from "./protectedRouteProps";
+import LogOut from "@/components/inputHelpers/logout";
 // További importok szükségesek lehetnek a 3D funkciókhoz és az STL kezeléséhez.
 
-export default function RoomPlanner(props : any) {
+export default function RoomPlanner(props) {
   // Állapotok (state) a boxok, STL fájlok és berendezések tárolásához.
   const [boxes, setBoxes] = useState([]); // Az előző oldalról betöltött boxok.
   const [furniture, setFurniture] = useState([]); // A felhasználó által hozzáadott berendezések.
 
   return (
+    <ProtectedRoute>
     <div className="grid grid-cols-3 gap-4 h-full">
       {/* 3D Tér */}
       <div className="col-span-2">
@@ -25,7 +28,7 @@ export default function RoomPlanner(props : any) {
           >
             PlanFlow3D
           </h1>
-          {/* TODO: További navigációs elemek hozzáadása, ha szükséges. */}
+          <LogOut />
         </nav>
 
         {/* STL Fájlok Feltöltése */}
@@ -56,6 +59,8 @@ export default function RoomPlanner(props : any) {
           {/* TODO: Elrendezés exportálása STL formátumban. */}
         </div>
       </div>
+      
     </div>
+    </ProtectedRoute>
   );
 }

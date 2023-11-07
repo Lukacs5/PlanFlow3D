@@ -1,14 +1,14 @@
 import "../styles/globals.css";
 import "../styles/style.css";
 import React, { useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import {
   TransformControls,
   OrbitControls,
   useTexture,
 } from "@react-three/drei";
 import create, { SetState } from "zustand";
-import type { Object3D } from "three";
+import { Object3D } from "three";
 import LogOut from "../components/inputHelpers/logout";
 import ProtectedRoute from "./protectedRouteProps";
 
@@ -53,6 +53,7 @@ function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
 }
 
 const BluePrint = () => {
+  const [name, setName] = useState("");
   const [boxSizeX, setBoxSizeX] = useState<number>(1);
   const [boxSizeY, setBoxSizeY] = useState<number>(1);
   const [boxSizeZ, setBoxSizeZ] = useState<number>(1);
@@ -93,50 +94,54 @@ const BluePrint = () => {
 
   const updateSelectedBoxSize = () => {
     if (selectedBoxSize && selectedBoxIndex !== null) {
-      setBoxes((prev) =>
-        prev.map((box, idx) =>
-          idx === selectedBoxIndex ? selectedBoxSize : box
-        )
-      );
+      setBoxes((prev) => prev.map((box, idx) => idx === selectedBoxIndex ? selectedBoxSize : box));
     }
   };
+  
 
   const [savedBoxes, setSavedBoxes] = useState<BoxData[]>([]);
 
-  const getUserIdByEmail = async (email : string) => {
+  const getUserIdByEmail = async (email: string) => {
     try {
-     const email : string = localStorage.getItem('userEmail') || "ERROR";
-      const response = await fetch(`/api/getUserId?email=${encodeURIComponent(email)}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+      const email: string = localStorage.getItem("userEmail") || "ERROR";
+      const response = await fetch(
+        `/api/getUserId?email=${encodeURIComponent(email)}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
-  
+      );
+
       if (response.ok) {
         const data = await response.json();
         return data.userId; // feltételezve, hogy a válasz JSON objektuma tartalmaz egy `userId` kulcsot
+        
       } else {
-        throw new Error('A hálózati válasz nem volt rendben.');
+        throw new Error("A hálózati válasz nem volt rendben.");
       }
     } catch (error) {
-      console.error('Hiba történt a felhasználói azonosító lekérésekor:', error);
+      console.error(
+        "Hiba történt a felhasználói azonosító lekérésekor:",
+        error
+      );
       return null; // vagy dobhat egy hibát, attól függően, hogy szeretné kezelni a hibákat
     }
   };
-  
+
   const saveToDatabase = async () => {
+    //const { gl } = useThree();
     try {
-      
-      const userEmail = localStorage.getItem('userEmail');
+      const userEmail = localStorage.getItem("userEmail");
       const userId = userEmail ? await getUserIdByEmail(userEmail) : null;
-  
+
       // Ellenőrizzük, hogy kaptunk-e userId-t
       if (!userId) {
-        console.error('Nem sikerült lekérni a userId-t.');
+        console.error("Nem sikerült lekérni a userId-t.");
         return;
       }
-  
+
       // Most már van userId-nk, elvégezhetjük a POST kérést
       const response = await fetch("/api/bluePrintSave", {
         method: "POST",
@@ -146,13 +151,16 @@ const BluePrint = () => {
         body: JSON.stringify({
           boxesData: boxes,
           userId: userId,
+          img: "asdfas", //gl.domElement.toDataURL("image/png"),
+          name: name,
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (data.success) {
         console.log("Adatok sikeresen elmentve:", data.data);
+        window.location.href = '/roomPlanner';
       } else {
         console.error("Hiba az adatok mentése közben:", data.error);
       }
@@ -160,43 +168,16 @@ const BluePrint = () => {
       console.error("Hiba az API hívás során:", error);
     }
   };
-  
-/*
-  const saveBoxData = async () => {
-    try {
-      const response = await fetch("/api/bluePrintSave", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          boxesData: boxes, // feltételezve, hogy a 'boxes' egy olyan változó, amely tartalmazza a menteni kívánt adatokat
-          userId: "your-user-id", // Cseréld le a 'your-user-id' részt a tényleges felhasználói azonosítóra
-        }),
-      });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Bluprint data saved:", result);
-        alert("Bluprint data saved!");
-      } else {
-        throw new Error("A hálózati válasz nem volt rendben.");
-      }
-    } catch (error) {
-      console.error(
-        "Probléma merült fel a lekérdezési művelettel kapcsolatban:",
-        error
-      );
-      alert("Nem sikerült elmenteni a doboz adatait!");
-    }
-  };
-*/
   return (
     <ProtectedRoute>
       <div className="grid grid-cols-3 gap-4 h-full">
         <div className="col-span-2">
           <div className="h-screen w-full">
-            <Canvas className="w-full h-full">
+            <Canvas
+              gl={{ preserveDrawingBuffer: true }}
+              className="w-full h-full"
+            >
               <ambientLight intensity={0.5} />
               <directionalLight color="red" position={[0, 0, 5]} />
               {boxes.map((box, idx) => (
@@ -208,7 +189,34 @@ const BluePrint = () => {
                 />
               ))}
               {target && (
-                <TransformControls object={target} mode={transformMode} />
+           <TransformControls
+           object={target}
+           mode={transformMode}
+           onChange={(event) => {
+             // Itt feltételezzük, hogy az 'event' egy 'Object3D' típusú objektumot tartalmaz
+             
+         
+             if (event && selectedBoxIndex !== null) {
+               const updatedBoxData = {
+                 ...boxes[selectedBoxIndex],
+                 x: target.position.x,
+                 y: target.position.y,
+                 z: target.position.z,
+                 SizeX : target.scale.x,
+                 SizeY : target.scale.y,
+                 SizeZ : target.scale.z,
+                 
+                 // Itt szükség lehet a scale és rotation értékek kezelésére is
+               };
+               console.log('Helyzet:', target.position);
+               console.log('Méret:', target.scale);
+               // Frissítsd a kiválasztott doboz adatait
+               setBoxes((prev) => prev.map((box, idx) => idx === selectedBoxIndex ? updatedBoxData : box));
+
+            // setBoxes((prev) => prev.map((box, idx) => idx === selectedBoxIndex ? selectedBoxSize : box));
+             }
+           }}
+         />
               )}
               <OrbitControls makeDefault />
             </Canvas>
@@ -361,7 +369,7 @@ const BluePrint = () => {
                 onClick={() => setTransformMode("translate")}
                 className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
               >
-                Translate
+                Transfor
               </button>
               <button
                 onClick={() => setTransformMode("rotate")}
@@ -377,9 +385,16 @@ const BluePrint = () => {
               </button>
             </div>
             <div className="flex justify-center items-center m-4">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter name"
+                className="p-2 border rounded"
+              />
               <button
                 onClick={saveToDatabase}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2"
               >
                 Save Box Data
               </button>

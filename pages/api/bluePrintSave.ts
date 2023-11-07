@@ -6,15 +6,16 @@ const prisma = new PrismaClient();
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
-    const { boxesData, userId } = req.body;
+    const { boxesData, userId ,img ,name } = req.body;
 
     try {
       // Elmenti a kockák adatait a Blueprint táblában
       const savedData = await prisma.floorplan.create({
         data: {
           userId: userId,
-          name: "Blueprint Name", // Adhatsz neki egy nevet
-          data: boxesData
+          name:  name || "Blueprint Name" , // Adhatsz neki egy nevet
+          data: boxesData,
+          img : img
         }
       });
 
