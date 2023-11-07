@@ -1,21 +1,20 @@
 import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-
 const prisma = new PrismaClient();
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+// Elnevezett függvény létrehozása
+async function saveBlueprint(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { boxesData, userId ,img ,name } = req.body;
+    const { boxesData, userId, img, name } = req.body;
 
     try {
-      // Elmenti a kockák adatait a Blueprint táblában
       const savedData = await prisma.floorplan.create({
         data: {
-          userId: userId,
-          name:  name || "Blueprint Name" , // Adhatsz neki egy nevet
+          userId,
+          name: name || "Blueprint Name",
           data: boxesData,
-          img : img
+          img: img || "default_image_placeholder.png" // A "asd" helyett használjon valós kép elérési utat vagy hagyja üresen
         }
       });
 
@@ -30,4 +29,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   } else {
     res.status(405).json({ success: false, error: "Method not allowed" });
   }
-};
+}
+
+// Az elnevezett függvény exportálása
+export default saveBlueprint;

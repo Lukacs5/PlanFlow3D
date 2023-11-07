@@ -5,7 +5,7 @@ import ProtectedRoute from "./protectedRouteProps";
 import LogOut from "@/components/inputHelpers/logout";
 // További importok szükségesek lehetnek a 3D funkciókhoz és az STL kezeléséhez.
 
-export default function RoomPlanner(props) {
+export default function RoomPlanner() {
   // Állapotok (state) a boxok, STL fájlok és berendezések tárolásához.
   const [boxes, setBoxes] = useState([]); // Az előző oldalról betöltött boxok.
   const [furniture, setFurniture] = useState([]); // A felhasználó által hozzáadott berendezések.
