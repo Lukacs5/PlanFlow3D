@@ -151,7 +151,7 @@ const BluePrint = () => {
         body: JSON.stringify({
           boxesData: boxes,
           userId: userId,
-          img: "asdfas", //gl.domElement.toDataURL("image/png"),
+          img: "https://i.imgur.com/gr0S0QQ.png", //gl.domElement.toDataURL("image/png"),
           name: name,
         }),
       });
@@ -160,7 +160,7 @@ const BluePrint = () => {
 
       if (data.success) {
         console.log("Adatok sikeresen elmentve:", data.data);
-        window.location.href = '/roomPlanner';
+        window.location.href = `/roomPlanner?blueprintId=${data.data.id}`;
       } else {
         console.error("Hiba az adatok mentése közben:", data.error);
       }
