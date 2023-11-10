@@ -1,6 +1,8 @@
+import "../styles/globals.css";
+import "../styles/style.css";
 import Head from 'next/head'
 
-export default function PrivacyPolicy() {
+ const PrivacyPolicy = (props) =>  {
   return (
     <div>
       <Head>
@@ -40,3 +42,5 @@ export default function PrivacyPolicy() {
     </div>
   )
 }
+
+export default PrivacyPolicy

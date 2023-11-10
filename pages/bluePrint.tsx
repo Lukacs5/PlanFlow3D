@@ -94,12 +94,13 @@ const BluePrint = () => {
 
   const updateSelectedBoxSize = () => {
     if (selectedBoxSize && selectedBoxIndex !== null) {
-      setBoxes((prev) => prev.map((box, idx) => idx === selectedBoxIndex ? selectedBoxSize : box));
+      setBoxes((prev) =>
+        prev.map((box, idx) =>
+          idx === selectedBoxIndex ? selectedBoxSize : box
+        )
+      );
     }
   };
-  
-
-  const [savedBoxes, setSavedBoxes] = useState<BoxData[]>([]);
 
   const getUserIdByEmail = async (email: string) => {
     try {
@@ -117,7 +118,6 @@ const BluePrint = () => {
       if (response.ok) {
         const data = await response.json();
         return data.userId; // feltételezve, hogy a válasz JSON objektuma tartalmaz egy `userId` kulcsot
-        
       } else {
         throw new Error("A hálózati válasz nem volt rendben.");
       }
@@ -131,7 +131,7 @@ const BluePrint = () => {
   };
 
   const saveToDatabase = async () => {
-    //const { gl } = useThree();
+    
     try {
       const userEmail = localStorage.getItem("userEmail");
       const userId = userEmail ? await getUserIdByEmail(userEmail) : null;
@@ -189,34 +189,37 @@ const BluePrint = () => {
                 />
               ))}
               {target && (
-           <TransformControls
-           object={target}
-           mode={transformMode}
-           onChange={(event) => {
-             // Itt feltételezzük, hogy az 'event' egy 'Object3D' típusú objektumot tartalmaz
-             
-         
-             if (event && selectedBoxIndex !== null) {
-               const updatedBoxData = {
-                 ...boxes[selectedBoxIndex],
-                 x: target.position.x,
-                 y: target.position.y,
-                 z: target.position.z,
-                 SizeX : target.scale.x,
-                 SizeY : target.scale.y,
-                 SizeZ : target.scale.z,
-                 
-                 // Itt szükség lehet a scale és rotation értékek kezelésére is
-               };
-               console.log('Helyzet:', target.position);
-               console.log('Méret:', target.scale);
-               // Frissítsd a kiválasztott doboz adatait
-               setBoxes((prev) => prev.map((box, idx) => idx === selectedBoxIndex ? updatedBoxData : box));
+                <TransformControls
+                  object={target}
+                  mode={transformMode}
+                  onChange={(event) => {
+                    // Itt feltételezzük, hogy az 'event' egy 'Object3D' típusú objektumot tartalmaz
 
-            // setBoxes((prev) => prev.map((box, idx) => idx === selectedBoxIndex ? selectedBoxSize : box));
-             }
-           }}
-         />
+                    if (event && selectedBoxIndex !== null) {
+                      const updatedBoxData = {
+                        ...boxes[selectedBoxIndex],
+                        x: target.position.x,
+                        y: target.position.y,
+                        z: target.position.z,
+                        SizeX: target.scale.x,
+                        SizeY: target.scale.y,
+                        SizeZ: target.scale.z,
+
+                        // Itt szükség lehet a scale és rotation értékek kezelésére is
+                      };
+                      console.log("Helyzet:", target.position);
+                      console.log("Méret:", target.scale);
+                      // Frissítsd a kiválasztott doboz adatait
+                      setBoxes((prev) =>
+                        prev.map((box, idx) =>
+                          idx === selectedBoxIndex ? updatedBoxData : box
+                        )
+                      );
+
+                      // setBoxes((prev) => prev.map((box, idx) => idx === selectedBoxIndex ? selectedBoxSize : box));
+                    }
+                  }}
+                />
               )}
               <OrbitControls makeDefault />
             </Canvas>
