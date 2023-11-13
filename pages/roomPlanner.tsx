@@ -12,11 +12,27 @@ import {
 } from "@react-three/drei";
 import LogOut from "@/components/inputHelpers/logout";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
-import { texture } from "three/examples/jsm/nodes/Nodes.js";
-import { TextureLoader } from "three";
 import { Object3D } from "three";
 import create from "zustand";
 import { Mesh } from "three";
+
+type STLFile = {
+  filename: string;
+  fileRoot: string;
+  // További mezők, ha vannak
+};
+
+type StlData = {
+  sizeX: number;
+  sizeY: number;
+  sizeZ: number;
+  x: number;
+  y: number;
+  z: number;
+};
+
+
+const stlarr =[];
 
 type FloorProps = {
   data: Array<{
@@ -26,9 +42,22 @@ type FloorProps = {
     SizeX: number;
     SizeY: number;
     SizeZ: number;
-    texture: string; // Feltételezve, hogy van egy texture nevű string tulajdonság
+    texture: string;
   }>;
-  forwardedRef?: React.Ref<any>;
+  //forwardedRef?: React.Ref<any>;
+  onSelect?: () => void;
+};
+
+type FloorTileProps = {
+  item: {
+    x: number;
+    y: number;
+    z: number;
+    SizeX: number;
+    SizeY: number;
+    SizeZ: number;
+    texture: string;
+  };
   onSelect?: () => void;
 };
 
@@ -40,22 +69,28 @@ const useStore = create<{
   setSelectedModel: (model) => set({ selectedModel: model }),
 }));
 
-const Floor: React.FC<FloorProps> = (props) => {
-  return props.data.map((item, index) => {
-    const textureMap = useTexture(`/textures/${item.texture}.jpg`);
-    return (
-      <mesh
-        key={index}
-        position={[item.x, item.y, item.z]}
-        scale={[item.SizeX, item.SizeY, item.SizeZ]}
-        ref={props.forwardedRef}
-        onClick={() => props.onSelect && props.onSelect()}
-      >
-        <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial map={textureMap} />
-      </mesh>
-    );
-  });
+const FloorTile: React.FC<FloorTileProps> = ({ item, onSelect }) => {
+  const textureMap = useTexture(`/textures/${item.texture}.jpg`);
+  return (
+    <mesh
+      position={[item.x, item.y, item.z]}
+      scale={[item.SizeX, item.SizeY, item.SizeZ]}
+      onClick={onSelect}
+    >
+      <boxGeometry args={[1, 1, 1]} />
+      <meshBasicMaterial map={textureMap} />
+    </mesh>
+  );
+};
+
+const Floor: React.FC<FloorProps> = ({ data, onSelect }) => {
+  return (
+    <>
+      {data.map((item, index) => (
+        <FloorTile key={index} item={item} onSelect={onSelect} />
+      ))}
+    </>
+  );
 };
 
 type STLModelProps = {
@@ -82,12 +117,103 @@ const STLModel: React.FC<STLModelProps> = ({ url, position, scale }) => {
   );
 };
 
+const getUserIdByEmail = async (email: string) => {
+  try {
+    const email: string = localStorage.getItem("userEmail") || "ERROR";
+    const response = await fetch(
+      `/api/getUserId?email=${encodeURIComponent(email)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.userId; // feltételezve, hogy a válasz JSON objektuma tartalmaz egy `userId` kulcsot
+    } else {
+      throw new Error("A hálózati válasz nem volt rendben.");
+    }
+  } catch (error) {
+    console.error("Hiba történt a felhasználói azonosító lekérésekor:", error);
+    return null; // vagy dobhat egy hibát, attól függően, hogy szeretné kezelni a hibákat
+  }
+};
+
+
+
+
 const RoomPlanner = () => {
+  const [stlFiles, setStlFiles] = useState<STLFile[]>([]);
   const router = useRouter();
   const [blueprintData, setBlueprintData] = useState<FloorProps | null>(null);
   const { selectedModel, setSelectedModel } = useStore();
 
+  const [selectedStlUrl, setSelectedStlUrl] = useState("");
+
+  function addStl (url : string) {
+
+  }
+
+
+  const handleFileUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const fileInput = event.currentTarget.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = fileInput.files ? fileInput.files[0] : null;
+
+    if (!file) {
+      console.error("Nincs fájl kiválasztva.");
+      return;
+    }
+
+    // A fájl hozzáadása a formData-hoz
+    formData.append("file", file);
+
+    // Email cím lekérdezése
+    const email = localStorage.getItem("userEmail") || "ERROR";
+    try {
+      const userId = await getUserIdByEmail(email);
+      formData.append("userId", userId);
+
+      // Feltöltési kérés elküldése
+
+      const response = await fetch("/api/STL/add", {
+        method: "POST",
+        body: formData,
+      });
+      console.log(response);
+      if (response.ok) {
+        console.log("Fájl feltöltve:", await response.json());
+      } else {
+        throw new Error("Hiba történt a fájl feltöltésekor.");
+      }
+    } catch (error) {
+      console.error("Hiba:", error);
+    }
+  };
+
   useEffect(() => {
+    const fetchFiles = async () => {
+      const email = localStorage.getItem("userEmail") || "ERROR";
+      const userId = await getUserIdByEmail(email);
+      const response = await fetch(`/api/STL/files?userId=${userId}`);
+      if (response.ok) {
+        const files = await response.json();
+        setStlFiles(files);
+      } else {
+        // Hiba kezelése
+        console.error("Nem sikerült betölteni a fájlokat");
+      }
+    };
+
+    fetchFiles();
+
     // A router.query aszinkron viselkedése miatt ellenőrizzük, hogy a blueprintId már rendelkezésre áll-e
     const handleLoadBlueprint = async () => {
       const blueprintId = router.query.blueprintId as string | undefined;
@@ -130,16 +256,19 @@ const RoomPlanner = () => {
               position={[0, 0, 0]}
               scale={[1, 1, 1]}
             />
-            <STLModel
-              url="/stls/1SeatDollhouseChair-base.stl"
-              position={[5, 5, 5]}
-              scale={[1, 1, 1]}
-            />
+
+            {selectedStlUrl && (
+              <STLModel
+                url={selectedStlUrl}
+                position={[0, 0, 0]} // Itt beállíthatja a kívánt pozíciót és méretarányt
+                scale={[1, 1, 1]}
+              />
+            )}
             {selectedModel && (
               <TransformControls
                 object={selectedModel}
                 mode="translate" // vagy 'rotate', 'scale'
-                onChange={() => setSelectedModel(null)}
+                //onChange={() => setSelectedModel(null)}
               />
             )}
 
@@ -168,26 +297,69 @@ const RoomPlanner = () => {
           </nav>
 
           <div className="mb-4">
-            <label className="block mb-2 text-white">Upload STL:</label>
-            <input type="file" className="p-2 bg-gray-700 text-white rounded" />
-            {/* TODO: STL fájlok feltöltése és tárolása. */}
+            <form onSubmit={handleFileUpload}>
+              <div className="mb-3">
+                <label
+                  htmlFor="file"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >
+                  Válassza ki a fájlt
+                </label>
+                <input
+                  type="file"
+                  id="file"
+                  name="file"
+                  accept=".stl"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="public" className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="public"
+                    name="public"
+                    className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                    Publikus
+                  </span>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                className="p-2 m-1 bg-blue-500 text-white rounded"
+              >
+                Feltöltés
+              </button>
+            </form>
           </div>
 
-        
           <div className="mb-4">
             <label className="block mb-2 text-white">Add STL To room:</label>
-            
+            <div>
+              {stlFiles.map((file, index) => (
+                <button
+                  key={index}
+                  className="bg-blue-500 hover:bg-blue-600 text-white p-2 m-1 rounded"
+                  onClick={() => setSelectedStlUrl(file.fileRoot + file.filename)}
+                >
+                  {file.filename}
+                </button>
+              ))}
+            </div>
             {/* TODO: STL fájlok feltöltése és tárolása. */}
           </div>
 
-          {/* Mentés és Exportálás */}
+          
           <div className="flex justify-between">
             <button className="bg-green-500 hover:bg-green-600 text-white p-2 rounded">
               Save Layout
             </button>
             {/* TODO: Jelenlegi elrendezés mentése. */}
-
-            
           </div>
         </div>
       </div>
