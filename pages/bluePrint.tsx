@@ -53,6 +53,7 @@ function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
 }
 
 const BluePrint = () => {
+  
   const [name, setName] = useState("");
   const [boxSizeX, setBoxSizeX] = useState<number>(1);
   const [boxSizeY, setBoxSizeY] = useState<number>(1);
@@ -367,22 +368,22 @@ const BluePrint = () => {
               )}
             </div>
 
-            <div className="flex justify-center items-center space-x-2 mt-4">
+            <div className="flex justify-center items-center space-x-2 my-4">
               <button
                 onClick={() => setTransformMode("translate")}
-                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
               >
                 Transfor
               </button>
               <button
                 onClick={() => setTransformMode("rotate")}
-                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
               >
                 Rotate
               </button>
               <button
                 onClick={() => setTransformMode("scale")}
-                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded-full shadow-md hover:shadow-lg"
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
               >
                 Scale
               </button>

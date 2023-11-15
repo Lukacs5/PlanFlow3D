@@ -45,10 +45,10 @@ export default async function handle(
       }
 
       const filename = uploadedFile.originalFilename;
-      const fileRoot = "/stls/"; // Eltávolítottuk a kezdő '/'
-      const uploadPath = path.resolve(process.cwd(), fileRoot);
+      const fileRoot = "/stls/";
+      const ServerFileRoot = "public" + fileRoot
+      const uploadPath = path.resolve(process.cwd(), ServerFileRoot);
       const newPath = path.join(uploadPath, filename);
-
       try {
         await fs.copyFile(uploadedFile.filepath, newPath);
 

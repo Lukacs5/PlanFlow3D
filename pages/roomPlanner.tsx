@@ -31,8 +31,7 @@ type StlData = {
   z: number;
 };
 
-
-const stlarr =[];
+const stlarr = [];
 
 type FloorProps = {
   data: Array<{
@@ -142,9 +141,6 @@ const getUserIdByEmail = async (email: string) => {
   }
 };
 
-
-
-
 const RoomPlanner = () => {
   const [stlFiles, setStlFiles] = useState<STLFile[]>([]);
   const router = useRouter();
@@ -152,11 +148,47 @@ const RoomPlanner = () => {
   const { selectedModel, setSelectedModel } = useStore();
 
   const [selectedStlUrl, setSelectedStlUrl] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const [showNotification, setShowNotification] = useState(false);
 
-  function addStl (url : string) {
+  const [transformMode, setTransformMode] = useState<
+    "scale" | "rotate" | "translate"
+  >("translate");
 
-  }
+  function addStl(url: string) {}
 
+  const fetchStlFiles = async () => {
+    const email = localStorage.getItem("userEmail") || "ERROR";
+    const userId = await getUserIdByEmail(email);
+    const response = await fetch(`/api/STL/files?userId=${userId}`);
+    if (response.ok) {
+      const files = await response.json();
+      setStlFiles(files);
+    } else {
+      console.error("Nem sikerült betölteni a fájlokat");
+    }
+  };
+
+  const UploadNotification = () => {
+    if (!showNotification) return null;
+
+    return (
+      <div className="flex flex-col items-center justify-center">
+        <h3 className="my-4">Fájl sikeresen feltöltve</h3>
+        <button
+          onClick={() => {
+            setShowNotification(false);
+            if (formRef.current) formRef.current.reset(); // űrlap kiürítése
+          }}
+          className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800"
+        >
+          <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+            OK
+          </span>
+        </button>
+      </div>
+    );
+  };
 
   const handleFileUpload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -190,6 +222,8 @@ const RoomPlanner = () => {
       console.log(response);
       if (response.ok) {
         console.log("Fájl feltöltve:", await response.json());
+        await fetchStlFiles();
+        setShowNotification(true);
       } else {
         throw new Error("Hiba történt a fájl feltöltésekor.");
       }
@@ -251,12 +285,13 @@ const RoomPlanner = () => {
             <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
             <pointLight position={[-10, -10, -10]} />
             <ambientLight intensity={0.5} />
+            {/*  just dev mode available ...
             <STLModel
               url="/stls/FridgeSmall.stl"
               position={[0, 0, 0]}
               scale={[1, 1, 1]}
             />
-
+            */}
             {selectedStlUrl && (
               <STLModel
                 url={selectedStlUrl}
@@ -265,11 +300,7 @@ const RoomPlanner = () => {
               />
             )}
             {selectedModel && (
-              <TransformControls
-                object={selectedModel}
-                mode="translate" // vagy 'rotate', 'scale'
-                //onChange={() => setSelectedModel(null)}
-              />
+              <TransformControls object={selectedModel} mode={transformMode} />
             )}
 
             {blueprintData && (
@@ -295,71 +326,98 @@ const RoomPlanner = () => {
             </h1>
             <LogOut />
           </nav>
+          <div className="m-2">
+            <div className=" my-4 block p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+              {showNotification ? (
+                <UploadNotification />
+              ) : (
+                <form ref={formRef} onSubmit={handleFileUpload}>
+                  <div className="mb-3">
+                    <label
+                      htmlFor="file"
+                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >
+                      Válassza ki a fájlt
+                    </label>
+                    <input
+                      type="file"
+                      id="file"
+                      name="file"
+                      accept=".stl"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                      required
+                    />
+                  </div>
 
-          <div className="mb-4">
-            <form onSubmit={handleFileUpload}>
-              <div className="mb-3">
-                <label
-                  htmlFor="file"
-                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                >
-                  Válassza ki a fájlt
-                </label>
-                <input
-                  type="file"
-                  id="file"
-                  name="file"
-                  accept=".stl"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                  required
-                />
-              </div>
+                  <div className="mb-3 flex">
+                    <label htmlFor="public" className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="public"
+                        name="public"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <span className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                        Publikus
+                      </span>
+                    </label>
+                  </div>
 
-              <div className="mb-3">
-                <label htmlFor="public" className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="public"
-                    name="public"
-                    className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <span className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                    Publikus
-                  </span>
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                className="p-2 m-1 bg-blue-500 text-white rounded"
-              >
-                Feltöltés
-              </button>
-            </form>
-          </div>
-
-          <div className="mb-4">
-            <label className="block mb-2 text-white">Add STL To room:</label>
-            <div>
-              {stlFiles.map((file, index) => (
-                <button
-                  key={index}
-                  className="bg-blue-500 hover:bg-blue-600 text-white p-2 m-1 rounded"
-                  onClick={() => setSelectedStlUrl(file.fileRoot + file.filename)}
-                >
-                  {file.filename}
-                </button>
-              ))}
+                  <button
+                    type="submit"
+                    className="p-2 bg-blue-500 text-white rounded m-auto"
+                  >
+                    Feltöltés
+                  </button>
+                </form>
+              )}
             </div>
-            {/* TODO: STL fájlok feltöltése és tárolása. */}
-          </div>
 
-          
-          <div className="flex justify-between">
-            <button className="bg-green-500 hover:bg-green-600 text-white p-2 rounded">
-              Save Layout
-            </button>
-            {/* TODO: Jelenlegi elrendezés mentése. */}
+            <div className="mb-4">
+              <label className="block mb-2 text-white">Add STL To room:</label>
+              <div>
+                {stlFiles.map((file, index) => (
+                  <button
+                    key={index}
+                    className="bg-blue-500 hover:bg-blue-600 text-white p-2 m-1 rounded"
+                    onClick={() =>
+                      setSelectedStlUrl(file.fileRoot + file.filename)
+                    }
+                  >
+                    {file.filename}
+                  </button>
+                ))}
+              </div>
+              {/* TODO: STL fájlok feltöltése és tárolása. */}
+            </div>
+
+            <div className="flex justify-center items-center space-x-2 my-4">
+              <button
+                onClick={() => setTransformMode("translate")}
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
+              >
+                Transfor
+              </button>
+              <button
+                onClick={() => setTransformMode("rotate")}
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
+              >
+                Rotate
+              </button>
+              <button
+                onClick={() => setTransformMode("scale")}
+                className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
+              >
+                Scale
+              </button>
+            </div>
+
+            <div className="flex justify-between">
+              <button className="bg-green-500 hover:bg-green-600 text-white p-2 rounded">
+                Save Layout
+              </button>
+              {/* TODO: Jelenlegi elrendezés mentése. */}
+            </div>
           </div>
         </div>
       </div>
