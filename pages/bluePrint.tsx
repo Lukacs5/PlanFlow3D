@@ -52,7 +52,7 @@ function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
   );
 }
 
-const BluePrint = (props) => {
+const BluePrint = () => {
   const [name, setName] = useState("");
   const [boxSizeX, setBoxSizeX] = useState<number>(1);
   const [boxSizeY, setBoxSizeY] = useState<number>(1);
