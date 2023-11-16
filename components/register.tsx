@@ -128,7 +128,8 @@ const Register = () => {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-2 ">
+      <div className=" my-4 block p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
       <div className="by-white">
         <h2 className="text-3xl text-center text-white font-bold">
           Regisztráció
@@ -251,6 +252,7 @@ const Register = () => {
                 href="/privacy-policy"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
               >
                 Adatvédelmi Nyilatkozatot
               </a>
@@ -272,6 +274,7 @@ const Register = () => {
           </div>
         </form>
       )}
+      </div>
     </div>
   );
 };

@@ -396,25 +396,25 @@ const RoomPlanner = () => {
                 onClick={() => setTransformMode("translate")}
                 className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
               >
-                Transfor
+                Mozgatás
               </button>
               <button
                 onClick={() => setTransformMode("rotate")}
                 className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
               >
-                Rotate
+                Forgatás
               </button>
               <button
                 onClick={() => setTransformMode("scale")}
                 className="bg-slate-500 hover:bg-slate-700 text-white p-4 rounded shadow-md hover:shadow-lg"
               >
-                Scale
+                Álméretezés
               </button>
             </div>
 
             <div className="flex justify-between">
               <button className="bg-green-500 hover:bg-green-600 text-white p-2 rounded">
-                Save Layout
+                Projekt Mentése
               </button>
               {/* TODO: Jelenlegi elrendezés mentése. */}
             </div>

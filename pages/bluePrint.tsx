@@ -52,8 +52,7 @@ function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
   );
 }
 
-const BluePrint = () => {
-  
+const BluePrint = (props) => {
   const [name, setName] = useState("");
   const [boxSizeX, setBoxSizeX] = useState<number>(1);
   const [boxSizeY, setBoxSizeY] = useState<number>(1);
@@ -132,7 +131,6 @@ const BluePrint = () => {
   };
 
   const saveToDatabase = async () => {
-    
     try {
       const userEmail = localStorage.getItem("userEmail");
       const userId = userEmail ? await getUserIdByEmail(userEmail) : null;
@@ -237,55 +235,59 @@ const BluePrint = () => {
             <LogOut />
           </nav>
           <div className="p-2">
-            <div className="space-y-4">
-              <div className="flex flex-col">
-                <label className="mb-1 text-gray-600">Width (X):</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="p-2 w-full border rounded-md text-black"
-                  value={boxSizeX}
-                  onChange={(e) => setBoxSizeX(Number(e.target.value))}
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="mb-1 text-gray-600">Height (Y):</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="p-2 w-full border rounded-md text-black"
-                  value={boxSizeY}
-                  onChange={(e) => setBoxSizeY(Number(e.target.value))}
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="mb-1 text-gray-600">Depth (Z):</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="p-2 w-full border rounded-md text-black"
-                  value={boxSizeZ}
-                  onChange={(e) => setBoxSizeZ(Number(e.target.value))}
-                />
-              </div>
-              <div className="flex justify-center items-center">
-                <button
-                  onClick={addBox}
-                  className="bg-slate-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  Add Box
-                </button>
+            <div className=" my-4 block p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+              <div className="space-y-1">
+                <div className="flex flex-col">
+                  <label className="mb-1 mt-2 text-gray-300 font-bold">Width (X):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="p-2 w-full border rounded-md text-black"
+                    value={boxSizeX}
+                    onChange={(e) => setBoxSizeX(Number(e.target.value))}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="mb-1 mt-2 text-gray-300 font-bold">Height (Y):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="p-2 w-full border rounded-md text-black"
+                    value={boxSizeY}
+                    onChange={(e) => setBoxSizeY(Number(e.target.value))}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="mb-1 mt-2 text-gray-300 font-bold">Depth (Z):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="p-2 w-full border rounded-md text-black"
+                    value={boxSizeZ}
+                    onChange={(e) => setBoxSizeZ(Number(e.target.value))}
+                  />
+                </div>
+                <div className="flex justify-center items-center">
+                  <button
+                    onClick={addBox}
+                    className="bg-slate-500 hover:bg-blue-700 text-white font-bold py-2 mt-4 px-4 rounded"
+                  >
+                    Add Box
+                  </button>
+                </div>
               </div>
             </div>
 
             <div className="space-y-4">
-              {selectedBoxSize && (
+              {selectedBoxSize && 
+              (
                 <>
-                  <h3 className="text-xl font-bold text-white">
+                 <div className=" my-4 block p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+                  <h3 className="text-xl font-bold text-center text-white">
                     Selected Box Dimensions:
                   </h3>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-gray-600">Width (X):</label>
+                    <label className="mb-1 mt-2 text-gray-300 font-bold">Width (X):</label>
                     <input
                       type="number"
                       step="0.01"
@@ -300,7 +302,7 @@ const BluePrint = () => {
                     />
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-gray-600">Height (Y):</label>
+                    <label className="mb-1 mt-2 text-gray-300 font-bold">Height (Y):</label>
                     <input
                       type="number"
                       step="0.01"
@@ -315,7 +317,7 @@ const BluePrint = () => {
                     />
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-gray-600">Depth (Z):</label>
+                    <label className="mb-1 mt-2 text-gray-300 font-bold">Depth (Z):</label>
                     <input
                       type="number"
                       step="0.01"
@@ -330,7 +332,7 @@ const BluePrint = () => {
                     />
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-gray-600">
+                    <label className="mb-1 mt-2 text-gray-300 font-bold">
                       Texture for selected box:
                     </label>
                     <select
@@ -350,22 +352,24 @@ const BluePrint = () => {
                     </select>
                   </div>
 
-                  <button
+                  <div className="flex justify-center items-center"><button
                     onClick={updateSelectedBoxSize}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 w-80 rounded my-4"
                   >
-                    Update Selected Box Size
-                  </button>
+                     Kijelölt Doboz Frissités
+                  </button></div>
                   {selectedBoxIndex !== null && (
-                    <button
+                    <div className="flex justify-center items-center"><button
                       onClick={deleteSelectedBox}
-                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 w-80 px-4 rounded"
                     >
-                      Delete Selected Box
-                    </button>
+                      Kijelölt Doboz Törlése
+                    </button></div>
                   )}
+</div>
                 </>
-              )}
+              )
+              }
             </div>
 
             <div className="flex justify-center items-center space-x-2 my-4">
@@ -394,7 +398,7 @@ const BluePrint = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter name"
-                className="p-2 border rounded"
+                className="p-2 border rounded text-black"
               />
               <button
                 onClick={saveToDatabase}
