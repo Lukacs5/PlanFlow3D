@@ -20,6 +20,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return (
       <div>
         <h1>Jelentkez be hogy tudd használni az oldat !</h1>
+        <h2>a kezdőoldalra történő visszairányát más folyamatban van amenyiben nem lát válzozást használja a gombot!</h2>
         <button onClick={() => window.location.href = "/"}>Vissza a kezdő oldalra</button>
       </div>
     );

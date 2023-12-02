@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import { Canvas, useLoader } from "@react-three/fiber";
 import ProtectedRoute from "./protectedRouteProps";
 import {
-  Box,
   TransformControls,
   OrbitControls,
   useTexture,
@@ -15,6 +14,7 @@ import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { Object3D } from "three";
 import create from "zustand";
 import { Mesh } from "three";
+import { randFloat } from "three/src/math/MathUtils.js";
 
 type STLFile = {
   filename: string;
@@ -31,8 +31,6 @@ type StlData = {
   z: number;
 };
 
-const stlarr = [];
-
 type FloorProps = {
   data: Array<{
     x: number;
@@ -43,7 +41,6 @@ type FloorProps = {
     SizeZ: number;
     texture: string;
   }>;
-  //forwardedRef?: React.Ref<any>;
   onSelect?: () => void;
 };
 
@@ -62,14 +59,19 @@ type FloorTileProps = {
 
 const useStore = create<{
   selectedModel: Object3D | null;
-  setSelectedModel: (model: Object3D | null) => void;
+  setSelectedModel: (model: Object3D | null, modelUrl: string) => void;
+  selectedModelUrl: string;
+  setSelectedModelUrl: (modelUrl: string) => void;
 }>((set) => ({
   selectedModel: null,
-  setSelectedModel: (model) => set({ selectedModel: model }),
+  selectedModelUrl: "",
+  setSelectedModel: (model, modelUrl) =>
+    set({ selectedModel: model, selectedModelUrl: modelUrl }),
+  setSelectedModelUrl: (modelUrl) => set({ selectedModelUrl: modelUrl }),
 }));
 
 const FloorTile: React.FC<FloorTileProps> = ({ item, onSelect }) => {
-  const textureMap = useTexture(`/textures/${item.texture}.jpg`);
+  const textureMap = useTexture(`/textures/${item.texture}.jpeg`);
   return (
     <mesh
       position={[item.x, item.y, item.z]}
@@ -96,12 +98,18 @@ type STLModelProps = {
   url: string;
   position: [number, number, number];
   scale: [number, number, number];
+  onSelect: () => void;
 };
 
-const STLModel: React.FC<STLModelProps> = ({ url, position, scale }) => {
+const STLModel: React.FC<STLModelProps> = ({
+  url,
+  position,
+  scale,
+  onSelect,
+}) => {
   const geometry = useLoader(STLLoader, url);
-  const meshRef = useRef<Mesh>(null); // Itt használjuk a Mesh típust
-  const { setSelectedModel } = useStore();
+  const meshRef = useRef<Mesh>(null);
+  const { setSelectedModel, setSelectedModelUrl } = useStore();
 
   return (
     <mesh
@@ -109,7 +117,11 @@ const STLModel: React.FC<STLModelProps> = ({ url, position, scale }) => {
       geometry={geometry}
       position={position}
       scale={scale}
-      onClick={() => setSelectedModel(meshRef.current)}
+      onClick={() => {
+        setSelectedModel(meshRef.current, url);
+        setSelectedModelUrl(url);
+        onSelect();
+      }}
     >
       <meshPhongMaterial color={"gray"} />
     </mesh>
@@ -143,9 +155,11 @@ const getUserIdByEmail = async (email: string) => {
 
 const RoomPlanner = () => {
   const [stlFiles, setStlFiles] = useState<STLFile[]>([]);
+  const [stlUrls, setStlUrls] = useState<string[]>([]);
+  const [selectedStlIndex, setSelectedStlIndex] = useState<number | null>(null);
   const router = useRouter();
   const [blueprintData, setBlueprintData] = useState<FloorProps | null>(null);
-  const { selectedModel, setSelectedModel } = useStore();
+  const { selectedModel, setSelectedModel, setSelectedModelUrl } = useStore();
 
   const [selectedStlUrl, setSelectedStlUrl] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -155,7 +169,39 @@ const RoomPlanner = () => {
     "scale" | "rotate" | "translate"
   >("translate");
 
-  function addStl(url: string) {}
+  const selectStl = (index: number) => {
+    setSelectedStlIndex(index);
+
+    console.log("test : " + index);
+  };
+
+  function addStl(url: string) {
+    setStlUrls((prevUrls) => [...prevUrls, url]);
+  }
+
+  const handleRemoveSelectedModel = () => {
+    if (selectedStlIndex !== null) {
+      // Kiszűri a kiválasztott indexű elemet
+      const updatedStlUrls = stlUrls.filter(
+        (_, index) => index !== selectedStlIndex
+      );
+
+      // Frissíti a stlUrls állapotot
+      setStlUrls(updatedStlUrls);
+
+      setSelectedModelUrl("");
+      setSelectedStlIndex(null);
+    }
+  };
+
+  // const deleteSelectedStl = () => {
+  //  if (selectedStlIndex !== null) {
+  //  setStlModels((prevModels) => {
+  //   return prevModels.filter((_, idx) => idx !== selectedStlIndex);
+  // });
+  // setSelectedStlIndex(null);
+  // }
+  //};
 
   const fetchStlFiles = async () => {
     const email = localStorage.getItem("userEmail") || "ERROR";
@@ -275,6 +321,44 @@ const RoomPlanner = () => {
     }
   }, [router.isReady, router.query.blueprintId]);
 
+
+  
+  const saveProject = async () => {
+    const userId = await getUserIdByEmail(localStorage.getItem("userEmail") || "ERROR");
+    // Itt gyűjtse össze a mentendő adatokat
+    const projectData = {
+      userId : userId,
+      name : "projectDefault",
+      data : {
+      stlFiles,
+      stlUrls,
+      blueprintData,
+      }
+      // További adatok hozzáadása, ha szükséges
+    };
+  
+    try {
+      const response = await fetch('/api/roomPlanner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(projectData),
+      });
+  
+      if (response.ok) {
+        // Sikeres mentés kezelése
+        console.log("Projekt sikeresen elmentve");
+      } else {
+        // Hiba kezelése
+        console.error("Hiba történt a projekt mentésekor");
+      }
+    } catch (error) {
+      console.error("Hiba történt a kérés küldésekor:", error);
+    }
+  };
+  
+  
   // Itt jön a return rész, amit kérésed szerint kihagyok
   return (
     <ProtectedRoute>
@@ -285,31 +369,20 @@ const RoomPlanner = () => {
             <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
             <pointLight position={[-10, -10, -10]} />
             <ambientLight intensity={0.5} />
-            {/*  just dev mode available ...
-            <STLModel
-              url="/stls/FridgeSmall.stl"
-              position={[0, 0, 0]}
-              scale={[1, 1, 1]}
-            />
-            */}
-            {selectedStlUrl && (
+
+            {blueprintData && <Floor {...blueprintData} />}
+
+            {stlUrls.map((url, index) => (
               <STLModel
-                url={selectedStlUrl}
-                position={[0, 0, 0]} // Itt beállíthatja a kívánt pozíciót és méretarányt
+                key={index}
+                url={url}
+                position={[0, 0, 0]}
                 scale={[1, 1, 1]}
+                onSelect={() => selectStl(index)} // STL modell kiválasztásának hívása a selectStl funkcióval
               />
-            )}
+            ))}
             {selectedModel && (
               <TransformControls object={selectedModel} mode={transformMode} />
-            )}
-
-            {blueprintData && (
-              <Floor
-                {...blueprintData}
-                onSelect={() => {
-                  // Kezelje az eseményt, amikor a felhasználó kiválaszt egy elemet
-                }}
-              />
             )}
             <directionalLight />
             <OrbitControls makeDefault />
@@ -372,25 +445,6 @@ const RoomPlanner = () => {
                 </form>
               )}
             </div>
-
-            <div className="mb-4">
-              <label className="block mb-2 text-white">Add STL To room:</label>
-              <div>
-                {stlFiles.map((file, index) => (
-                  <button
-                    key={index}
-                    className="bg-blue-500 hover:bg-blue-600 text-white p-2 m-1 rounded"
-                    onClick={() =>
-                      setSelectedStlUrl(file.fileRoot + file.filename)
-                    }
-                  >
-                    {file.filename}
-                  </button>
-                ))}
-              </div>
-              {/* TODO: STL fájlok feltöltése és tárolása. */}
-            </div>
-
             <div className="flex justify-center items-center space-x-2 my-4">
               <button
                 onClick={() => setTransformMode("translate")}
@@ -412,11 +466,34 @@ const RoomPlanner = () => {
               </button>
             </div>
 
+            <button
+              onClick={handleRemoveSelectedModel}
+              className="your-button-styles"
+            >
+              Modell Törlése
+            </button>
+            <div className="mb-4">
+              <label className="block mb-2 text-white">Add STL To room:</label>
+              <div>
+                {stlFiles.map((file, index) => (
+                  <button
+                    key={index}
+                    className="bg-blue-500 hover:bg-blue-600 text-white p-2 m-1 rounded"
+                    onClick={() => addStl(file.fileRoot + file.filename)}
+                  >
+                    {file.filename}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex justify-between">
-              <button className="bg-green-500 hover:bg-green-600 text-white p-2 rounded">
+              <button
+                onClick={saveProject}
+                className="bg-green-500 hover:bg-green-600 text-white p-2 rounded"
+              >
                 Projekt Mentése
               </button>
-              {/* TODO: Jelenlegi elrendezés mentése. */}
             </div>
           </div>
         </div>

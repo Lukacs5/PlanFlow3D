@@ -19,6 +19,9 @@ type BoxData = {
   x: number;
   y: number;
   z: number;
+  rotationX?: number;
+  rotationY?: number;
+  rotationZ?: number;
   texture: string;
 };
 
@@ -34,7 +37,7 @@ const useStore = create<Store>((set: SetState<Store>) => ({
 
 function Box(props: BoxData & { forwardedRef: any; onSelect: () => void }) {
   const setTarget = useStore((state) => state.setTarget);
-  const textureMap = useTexture(`/textures/${props.texture}.jpg`);
+  const textureMap = useTexture(`/textures/${props.texture}.jpeg`);
 
   return (
     <mesh
@@ -59,7 +62,7 @@ const BluePrint = () => {
   const [boxSizeZ, setBoxSizeZ] = useState<number>(1);
   const [selectedBoxSize, setSelectedBoxSize] = useState<BoxData | null>(null);
   const [boxes, setBoxes] = useState<BoxData[]>([
-    { sizeX: 1, sizeY: 1, sizeZ: 1, x: 0, y: 0, z: 0, texture: "default" },
+    { sizeX: 1, sizeY: 1, sizeZ: 1, x: 0, y: -1, z: 0, texture: "default"},
   ]);
   const target = useStore((state) => state.target);
   const [selectedBoxIndex, setSelectedBoxIndex] = useState<number | null>(null);
@@ -73,7 +76,7 @@ const BluePrint = () => {
       sizeY: boxSizeY,
       sizeZ: boxSizeZ,
       x: 0,
-      y: 0,
+      y: -1,
       z: 0,
       texture: "default",
     };
@@ -203,7 +206,9 @@ const BluePrint = () => {
                         SizeX: target.scale.x,
                         SizeY: target.scale.y,
                         SizeZ: target.scale.z,
-
+                        rotationX: target.rotation.x,
+                        rotationY: target.rotation.y,
+                        rotationZ: target.rotation.z,
                         // Itt szükség lehet a scale és rotation értékek kezelésére is
                       };
                       console.log("Helyzet:", target.position);
